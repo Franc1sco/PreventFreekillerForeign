@@ -9,7 +9,7 @@
 
 // de-privatize and reedited version for released to the public in beta version
 // 
-#define VERSION "1.1"
+#define VERSION "1.2"
 
 new g_iClanIDs[MAXPLAYERS+1];
 new bool:g_Guiri[MAXPLAYERS+1] = {false, ...};
@@ -156,7 +156,7 @@ public OnClientSettingsChanged(client)
 {
   if (g_Guiri[client])
   {
-    if (IsClientInGame(client))
+    if (IsClientInGame(client) && !IsFakeClient(client))
     {
         // Check if they changed their clanid.
         decl String:sClanID[32];
@@ -248,7 +248,7 @@ public OnSpawn(Handle:event, const String:name[], bool:dontBroadcast)
 {
 	new client = GetClientOfUserId(GetEventInt(event, "userid"));
 
-        if(!g_Guiri[client])
+        if(!g_Guiri[client] || IsFakeClient(client))
             return;
 
         if (GetClientTeam(client) == 3)  
