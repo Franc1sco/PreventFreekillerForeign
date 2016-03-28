@@ -9,9 +9,8 @@
 
 // de-privatize and reedited version for released to the public in beta version
 // 
-#define VERSION "1.2"
+#define VERSION "1.3"
 
-new g_iClanIDs[MAXPLAYERS+1];
 new bool:g_Guiri[MAXPLAYERS+1] = {false, ...};
 
 new Handle:PaisPropio;
@@ -55,6 +54,14 @@ public OnPluginStart()
 	HookEvent("player_spawn", OnSpawn);
 
 	LoadList();
+	
+	for(new i = 1; i <=MaxClients; ++i)
+	{
+		if (!IsClientInGame(i))
+			continue;
+			
+		OnClientPostAdminCheck(i);
+	}
 
 }
 
@@ -158,25 +165,14 @@ public OnClientSettingsChanged(client)
   {
     if (IsClientInGame(client) && !IsFakeClient(client))
     {
-        // Check if they changed their clanid.
-        decl String:sClanID[32];
-        GetClientInfo(client, "cl_clanid", sClanID, sizeof(sClanID));
-        
-        if (g_iClanIDs[client] != StringToInt(sClanID))
-        {
-            // Save their new clanid for checking again later.
-            g_iClanIDs[client] = StringToInt(sClanID);
-            
-            // Change their clan tag back.
-            CS_SetClientClanTag(client, "GUIRI|");
-        }
+        CreateTimer(1.0, Tag_G, client);
     }
   }
 }   
 
 public Action:Tag_G(Handle:timer, any:client)
 {
- if (IsClientInGame(client))
+ if (IsClientInGame(client) && !IsFakeClient(client) && g_Guiri[client])
  {
 
     decl String:tagguiri[32];
@@ -185,10 +181,6 @@ public Action:Tag_G(Handle:timer, any:client)
 
     CS_SetClientClanTag(client, tagguiri);
 
-    // Store their current clanid.
-    decl String:sClanID[32];
-    GetClientInfo(client, "cl_clanid", sClanID, sizeof(sClanID));
-    g_iClanIDs[client] = StringToInt(sClanID);
  }
 } 
 
@@ -253,10 +245,11 @@ public OnSpawn(Handle:event, const String:name[], bool:dontBroadcast)
 
         if (GetClientTeam(client) == 3)  
         {
-               CS_SwitchTeam(client, 2);
+               ChangeClientTeam(client, 2);
 	       PrintToChat(client, "[SM_GUIRIS] You not allowed to be CT");
-               CS_RespawnPlayer(client);
+               //CS_RespawnPlayer(client);
         }  
+        CreateTimer(0.0, Tag_G, client);
 }
 
 // code from country filter
